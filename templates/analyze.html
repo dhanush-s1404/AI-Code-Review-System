@@ -1,0 +1,371 @@
+{% extends "base.html" %}
+{% block title %}Analyze Code - AI Code Review{% endblock %}
+
+{% block content %}
+<div class="analyze-v2">
+    <!-- Animated Background -->
+    <div class="analyze-bg-grid"></div>
+
+    <!-- Top Section -->
+    <div class="analyze-top">
+        <div class="analyze-top-left">
+            <div class="top-badge">
+                <span class="badge-dot"></span>
+                <span>AI Engine Active</span>
+            </div>
+            <h1>Code <span class="gradient-text">Analysis</span></h1>
+            <p>Upload or write code — get instant AI-powered insights on bugs, security, and quality</p>
+        </div>
+        <div class="analyze-top-right">
+            <div class="top-stat-mini">
+                <i class="fas fa-bolt"></i>
+                <div>
+                    <strong>Instant</strong>
+                    <span>Results</span>
+                </div>
+            </div>
+            <div class="top-stat-mini">
+                <i class="fas fa-language"></i>
+                <div>
+                    <strong>10+</strong>
+                    <span>Languages</span>
+                </div>
+            </div>
+            <div class="top-stat-mini">
+                <i class="fas fa-shield-alt"></i>
+                <div>
+                    <strong>Deep</strong>
+                    <span>Security</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Form -->
+    <form method="POST" action="{{ url_for('analyze') }}" class="analyze-v2-form">
+
+        <!-- Tabbed Input: Paste or Upload -->
+        <div class="input-tabs">
+            <button type="button" class="input-tab active" data-tab="paste">
+                <i class="fas fa-keyboard"></i> Write / Paste Code
+            </button>
+            <button type="button" class="input-tab" data-tab="upload">
+                <i class="fas fa-file-upload"></i> Upload File
+            </button>
+        </div>
+
+        <!-- Upload Tab -->
+        <div class="tab-content tab-upload" id="tab-upload" style="display:none;">
+            <div class="upload-zone" id="upload-zone">
+                <input type="file" id="file-input" class="file-input-hidden" accept=".py,.js,.ts,.java,.c,.cpp,.h,.cs,.php,.rb,.go,.rs,.jsx,.tsx,.html,.css,.sql,.swift,.kt,.sh,.dart">
+                <div class="upload-zone-inner" id="upload-default">
+                    <div class="upload-anim">
+                        <div class="upload-ring"></div>
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <h3>Drop your file here</h3>
+                    <p>or <button type="button" class="upload-browse" id="browse-btn">click to browse</button></p>
+                    <div class="upload-accepts">
+                        Accepts: .py, .js, .java, .cpp, .cs, .php, .go, .rs, .rb and more
+                    </div>
+                    <div class="upload-limit">Max file size: 1MB</div>
+                </div>
+                <div class="upload-zone-dragging" id="upload-dragging" style="display:none;">
+                    <i class="fas fa-hand-holding-heart"></i>
+                    <span>Drop it like it's hot!</span>
+                </div>
+                <div class="upload-zone-done" id="upload-done" style="display:none;">
+                    <i class="fas fa-check-circle"></i>
+                    <span id="upload-done-name">file.py loaded</span>
+                    <button type="button" class="upload-remove" id="upload-remove">
+                        <i class="fas fa-times"></i> Remove
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Paste Tab (default) -->
+        <div class="tab-content tab-paste" id="tab-paste">
+            <!-- Config Row -->
+            <div class="v2-config-row">
+                <div class="v2-config-item">
+                    <div class="config-label"><i class="fas fa-tag"></i> Filename</div>
+                    <input type="text" id="filename" name="filename" placeholder="e.g. main.py" class="v2-input">
+                </div>
+                <div class="v2-config-item">
+                    <div class="config-label"><i class="fas fa-code-branch"></i> Language</div>
+                    <select id="language" name="language" class="v2-select">
+                        <option value="auto">🔍 Auto-detect</option>
+                        <option value="Python">🐍 Python</option>
+                        <option value="JavaScript">⚡ JavaScript</option>
+                        <option value="Java">☕ Java</option>
+                        <option value="C++">⚙️ C++</option>
+                        <option value="C">🔧 C</option>
+                        <option value="C#">🎯 C#</option>
+                        <option value="PHP">🐘 PHP</option>
+                        <option value="Ruby">💎 Ruby</option>
+                        <option value="Go">🐹 Go</option>
+                        <option value="Rust">🦀 Rust</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Code Editor -->
+            <div class="v2-editor" id="v2-editor">
+                <div class="v2-editor-topbar">
+                    <div class="editor-traffic">
+                        <span class="tl tl-r"></span>
+                        <span class="tl tl-y"></span>
+                        <span class="tl tl-g"></span>
+                    </div>
+                    <div class="editor-filename-tab">
+                        <i class="fas fa-file-code"></i> <span id="editor-tab-name">untitled</span>
+                    </div>
+                    <div class="editor-stats">
+                        <span id="stat-lines">0 lines</span>
+                        <span class="stat-sep">•</span>
+                        <span id="stat-chars">0 chars</span>
+                    </div>
+                </div>
+                <div class="v2-editor-body">
+                    <div class="v2-line-nums" id="v2-line-nums">1</div>
+                    <textarea id="code" name="code" spellcheck="false" placeholder="// Type or paste your code here...&#10;&#10;def hello():&#10;    print('Hello, World!')&#10;" required></textarea>
+                </div>
+                <div class="v2-editor-bottombar">
+                    <span class="bottom-hint"><i class="fas fa-info-circle"></i> Tab inserts 4 spaces • Drag files onto editor</span>
+                    <span class="bottom-lang" id="detected-lang">Auto-detect</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit Section -->
+        <div class="v2-submit-section">
+            <div class="submit-info">
+                <div class="submit-indicator">
+                    <span class="indicator-dot"></span>
+                    <span>Ready to analyze</span>
+                </div>
+                <span class="submit-powered">Powered by AI</span>
+            </div>
+            <div class="submit-buttons">
+                <button type="reset" class="v2-btn-reset" id="btn-reset">
+                    <i class="fas fa-undo-alt"></i> Clear All
+                </button>
+                <button type="submit" class="v2-btn-submit">
+                    <span class="submit-shimmer"></span>
+                    <i class="fas fa-rocket"></i>
+                    <span>Analyze Code</span>
+                </button>
+            </div>
+        </div>
+    </form>
+
+    <!-- Bottom Features -->
+    <div class="v2-features">
+        <div class="v2-feature-card">
+            <div class="vf-icon vf-icon-red"><i class="fas fa-bug"></i></div>
+            <h4>Bug Detection</h4>
+            <p>Finds syntax and logic errors</p>
+        </div>
+        <div class="v2-feature-card">
+            <div class="vf-icon vf-icon-orange"><i class="fas fa-shield-alt"></i></div>
+            <h4>Security Scan</h4>
+            <p>Detects vulnerabilities</p>
+        </div>
+        <div class="v2-feature-card">
+            <div class="vf-icon vf-icon-green"><i class="fas fa-magic"></i></div>
+            <h4>Auto Fix</h4>
+            <p>Generates corrected code</p>
+        </div>
+        <div class="v2-feature-card">
+            <div class="vf-icon vf-icon-blue"><i class="fas fa-chart-line"></i></div>
+            <h4>Quality Score</h4>
+            <p>Rates your code 0–100</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // ─── Elements ─────────────────────────────────────────────────
+    const textarea = document.getElementById('code');
+    const lineNums = document.getElementById('v2-line-nums');
+    const statLines = document.getElementById('stat-lines');
+    const statChars = document.getElementById('stat-chars');
+    const filenameInput = document.getElementById('filename');
+    const editorTabName = document.getElementById('editor-tab-name');
+    const languageSelect = document.getElementById('language');
+    const detectedLang = document.getElementById('detected-lang');
+
+    // Tab elements
+    const tabs = document.querySelectorAll('.input-tab');
+    const tabPaste = document.getElementById('tab-paste');
+    const tabUpload = document.getElementById('tab-upload');
+
+    // Upload elements
+    const uploadZone = document.getElementById('upload-zone');
+    const uploadDefault = document.getElementById('upload-default');
+    const uploadDragging = document.getElementById('upload-dragging');
+    const uploadDone = document.getElementById('upload-done');
+    const uploadDoneName = document.getElementById('upload-done-name');
+    const fileInput = document.getElementById('file-input');
+    const browseBtn = document.getElementById('browse-btn');
+    const uploadRemove = document.getElementById('upload-remove');
+
+    // ─── Tab Switching ────────────────────────────────────────────
+    tabs.forEach(function(tab) {
+        tab.addEventListener('click', function() {
+            tabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            const target = this.dataset.tab;
+            tabPaste.style.display = target === 'paste' ? 'block' : 'none';
+            tabUpload.style.display = target === 'upload' ? 'block' : 'none';
+        });
+    });
+
+    // ─── Editor Functions ─────────────────────────────────────────
+    function updateEditor() {
+        const lines = textarea.value.split('\n');
+        const count = lines.length;
+        let nums = '';
+        for (let i = 1; i <= count; i++) nums += i + '\n';
+        lineNums.textContent = nums;
+        statLines.textContent = count + ' line' + (count !== 1 ? 's' : '');
+        statChars.textContent = textarea.value.length + ' chars';
+    }
+
+    textarea.addEventListener('input', updateEditor);
+    textarea.addEventListener('scroll', function() {
+        lineNums.scrollTop = textarea.scrollTop;
+    });
+
+    filenameInput.addEventListener('input', function() {
+        editorTabName.textContent = this.value || 'untitled';
+    });
+
+    languageSelect.addEventListener('change', function() {
+        detectedLang.textContent = this.value === 'auto' ? 'Auto-detect' : this.value;
+    });
+
+    textarea.addEventListener('keydown', function(e) {
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            const s = this.selectionStart, end = this.selectionEnd;
+            this.value = this.value.substring(0, s) + '    ' + this.value.substring(end);
+            this.selectionStart = this.selectionEnd = s + 4;
+            updateEditor();
+        }
+    });
+
+    updateEditor();
+
+    // ─── Language from Extension ──────────────────────────────────
+    const extMap = {
+        'py':'Python','pyw':'Python','js':'JavaScript','jsx':'JavaScript',
+        'ts':'JavaScript','tsx':'JavaScript','java':'Java','c':'C','h':'C',
+        'cpp':'C++','cc':'C++','cxx':'C++','cs':'C#','php':'PHP',
+        'rb':'Ruby','go':'Go','rs':'Rust'
+    };
+
+    function setLangFromFile(filename) {
+        const ext = filename.split('.').pop().toLowerCase();
+        const lang = extMap[ext] || 'auto';
+        languageSelect.value = lang;
+        detectedLang.textContent = lang === 'auto' ? 'Auto-detect' : lang;
+    }
+
+    // ─── File Handling ────────────────────────────────────────────
+    function handleFile(file) {
+        if (file.size > 1024 * 1024) {
+            alert('File too large. Max 1MB allowed.');
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            textarea.value = e.target.result;
+            updateEditor();
+            filenameInput.value = file.name;
+            editorTabName.textContent = file.name;
+            setLangFromFile(file.name);
+
+            // Switch to paste tab to show code
+            tabs.forEach(t => t.classList.remove('active'));
+            tabs[0].classList.add('active');
+            tabPaste.style.display = 'block';
+            tabUpload.style.display = 'none';
+
+            // Show done state briefly in upload zone
+            uploadDefault.style.display = 'none';
+            uploadDragging.style.display = 'none';
+            uploadDone.style.display = 'flex';
+            uploadDoneName.textContent = file.name + ' loaded!';
+        };
+        reader.readAsText(file);
+    }
+
+    // Upload zone events
+    let dragCount = 0;
+
+    uploadZone.addEventListener('dragenter', function(e) {
+        e.preventDefault(); dragCount++;
+        uploadZone.classList.add('dragging');
+        uploadDefault.style.display = 'none';
+        uploadDragging.style.display = 'flex';
+        uploadDone.style.display = 'none';
+    });
+    uploadZone.addEventListener('dragover', function(e) { e.preventDefault(); });
+    uploadZone.addEventListener('dragleave', function(e) {
+        e.preventDefault(); dragCount--;
+        if (dragCount === 0) {
+            uploadZone.classList.remove('dragging');
+            uploadDefault.style.display = 'flex';
+            uploadDragging.style.display = 'none';
+        }
+    });
+    uploadZone.addEventListener('drop', function(e) {
+        e.preventDefault(); dragCount = 0;
+        uploadZone.classList.remove('dragging');
+        if (e.dataTransfer.files.length > 0) handleFile(e.dataTransfer.files[0]);
+        else { uploadDefault.style.display = 'flex'; uploadDragging.style.display = 'none'; }
+    });
+
+    browseBtn.addEventListener('click', function() { fileInput.click(); });
+    fileInput.addEventListener('change', function() {
+        if (this.files.length > 0) handleFile(this.files[0]);
+    });
+
+    uploadRemove.addEventListener('click', function() {
+        textarea.value = '';
+        filenameInput.value = '';
+        editorTabName.textContent = 'untitled';
+        languageSelect.value = 'auto';
+        detectedLang.textContent = 'Auto-detect';
+        updateEditor();
+        uploadDefault.style.display = 'flex';
+        uploadDone.style.display = 'none';
+    });
+
+    // ─── Drop on editor too ───────────────────────────────────────
+    const editor = document.getElementById('v2-editor');
+    editor.addEventListener('dragover', function(e) { e.preventDefault(); });
+    editor.addEventListener('drop', function(e) {
+        e.preventDefault();
+        if (e.dataTransfer.files.length > 0) handleFile(e.dataTransfer.files[0]);
+    });
+
+    // ─── Reset button ─────────────────────────────────────────────
+    document.getElementById('btn-reset').addEventListener('click', function() {
+        setTimeout(function() {
+            updateEditor();
+            editorTabName.textContent = 'untitled';
+            detectedLang.textContent = 'Auto-detect';
+            uploadDefault.style.display = 'flex';
+            uploadDone.style.display = 'none';
+            uploadDragging.style.display = 'none';
+        }, 10);
+    });
+});
+</script>
+{% endblock %}

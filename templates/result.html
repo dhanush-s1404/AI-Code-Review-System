@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Analysis Result - AI Code Review{% endblock %}
+
+{% block content %}
+<div class="result-page">
+    <div class="page-header">
+        <h1><i class="fas fa-poll"></i> Analysis Result</h1>
+        <p>{{ analysis.filename }} &middot; {{ analysis.language }} &middot; {{ analysis.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+    </div>
+
+    <!-- Quality Score -->
+    <div class="score-section">
+        <div class="score-circle {% if analysis.quality_score >= 80 %}score-high{% elif analysis.quality_score >= 50 %}score-medium{% else %}score-low{% endif %}">
+            <span class="score-value">{{ analysis.quality_score }}</span>
+            <span class="score-label">Quality Score</span>
+        </div>
+        <div class="score-summary">
+            <p>{{ result.get('summary', 'Analysis complete.') }}</p>
+        </div>
+    </div>
+
+    <!-- Errors Section -->
+    {% if result.get('errors') %}
+    <div class="result-section">
+        <h2><i class="fas fa-exclamation-triangle"></i> Issues Found ({{ result.errors|length }})</h2>
+        <div class="errors-list">
+            {% for error in result.errors %}
+            <div class="error-card severity-{{ error.severity|lower }}">
+                <div class="error-header">
+                    <span class="severity-badge {{ error.severity|lower }}">{{ error.severity }}</span>
+                    <span class="error-type">{{ error.type }}</span>
+                    {% if error.line %}
+                    <span class="error-line">Line {{ error.line }}</span>
+                    {% endif %}
+                </div>
+                <div class="error-body">
+                    <p class="error-desc">{{ error.description }}</p>
+                    {% if error.suggestion %}
+                    <p class="error-suggestion"><i class="fas fa-lightbulb"></i> {{ error.suggestion }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <div class="result-section success-section">
+        <h2><i class="fas fa-check-circle"></i> No Issues Found</h2>
+        <p>Your code looks good! No critical issues were detected.</p>
+    </div>
+    {% endif %}
+
+    <!-- Original Code -->
+    <div class="result-section">
+        <h2><i class="fas fa-file-code"></i> Original Code</h2>
+        <div class="code-block">
+            <pre><code>{{ analysis.original_code }}</code></pre>
+        </div>
+    </div>
+
+    <!-- Fixed Code -->
+    {% if analysis.fixed_code %}
+    <div class="result-section">
+        <h2><i class="fas fa-magic"></i> Corrected Code</h2>
+        <div class="code-block code-fixed">
+            <pre><code>{{ analysis.fixed_code }}</code></pre>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="result-actions">
+        <a href="{{ url_for('analyze') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> New Analysis
+        </a>
+        <a href="{{ url_for('history') }}" class="btn btn-secondary">
+            <i class="fas fa-history"></i> View History
+        </a>
+        <form method="POST" action="{{ url_for('delete_analysis', analysis_id=analysis.id) }}" style="display:inline;">
+            <button type="submit" class="btn btn-danger" onclick="return confirm('Delete this analysis?')">
+                <i class="fas fa-trash"></i> Delete
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

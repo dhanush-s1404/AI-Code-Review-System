@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}History - AI Code Review{% endblock %}
+
+{% block content %}
+<div class="history-page">
+    <!-- Page Header -->
+    <div class="page-banner">
+        <div class="page-banner-content">
+            <h1><i class="fas fa-history"></i> Analysis History</h1>
+            <p>Browse and manage all your past code reviews</p>
+        </div>
+        <a href="{{ url_for('analyze') }}" class="btn btn-glow">
+            <i class="fas fa-plus"></i> New Analysis
+        </a>
+    </div>
+
+    {% if analyses %}
+    <!-- Stats Summary -->
+    <div class="history-stats">
+        <div class="history-stat">
+            <span class="history-stat-num">{{ analyses|length }}</span>
+            <span class="history-stat-label">Total Reviews</span>
+        </div>
+        <div class="history-stat-divider"></div>
+        <div class="history-stat">
+            <span class="history-stat-num">{{ analyses|selectattr('quality_score', 'ge', 80)|list|length }}</span>
+            <span class="history-stat-label">High Quality</span>
+        </div>
+        <div class="history-stat-divider"></div>
+        <div class="history-stat">
+            <span class="history-stat-num">{{ analyses|selectattr('quality_score', 'lt', 50)|list|length }}</span>
+            <span class="history-stat-label">Needs Work</span>
+        </div>
+    </div>
+
+    <!-- History Table -->
+    <div class="section-card">
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Filename</th>
+                        <th>Language</th>
+                        <th>Quality Score</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for analysis in analyses %}
+                    <tr class="table-row-animate">
+                        <td><span class="row-number">{{ loop.index }}</span></td>
+                        <td>
+                            <div class="file-cell">
+                                <i class="fas fa-file-code file-icon"></i>
+                                <span>{{ analysis.filename }}</span>
+                            </div>
+                        </td>
+                        <td><span class="badge badge-lang">{{ analysis.language }}</span></td>
+                        <td>
+                            <div class="score-bar">
+                                <div class="score-fill {% if analysis.quality_score >= 80 %}score-high{% elif analysis.quality_score >= 50 %}score-medium{% else %}score-low{% endif %}" style="width: {{ analysis.quality_score }}%"></div>
+                                <span class="score-text">{{ analysis.quality_score }}%</span>
+                            </div>
+                        </td>
+                        <td><span class="date-cell">{{ analysis.created_at.strftime('%b %d, %Y') }}</span></td>
+                        <td>
+                            <div class="action-buttons">
+                                <a href="{{ url_for('result', analysis_id=analysis.id) }}" class="btn btn-sm btn-view">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                                <form method="POST" action="{{ url_for('delete_analysis', analysis_id=analysis.id) }}" style="display:inline;">
+                                    <button type="submit" class="btn btn-sm btn-danger-outline" onclick="return confirm('Delete this analysis?')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="empty-state-card">
+        <div class="empty-illustration">
+            <i class="fas fa-inbox"></i>
+        </div>
+        <h3>No history yet</h3>
+        <p>Your code analysis history will appear here once you submit code for review.</p>
+        <a href="{{ url_for('analyze') }}" class="btn btn-primary btn-lg">
+            <i class="fas fa-rocket"></i> Start First Analysis
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
