@@ -48,4 +48,29 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         counter.textContent = lines + " line" + (lines !== 1 ? "s" : "");
     }
+
+    function setTheme(theme) {
+        if (theme === "dark") {
+            document.documentElement.classList.add("dark-theme");
+            themeToggleIcon.className = "fas fa-sun";
+            localStorage.setItem("theme", "dark");
+        } else {
+            document.documentElement.classList.remove("dark-theme");
+            themeToggleIcon.className = "fas fa-moon";
+            localStorage.setItem("theme", "light");
+        }
+    }
+
+    const themeToggleButton = document.getElementById("theme-toggle");
+    const themeToggleIcon = document.querySelector("#theme-toggle i");
+
+    if (themeToggleButton && themeToggleIcon) {
+        const savedTheme = localStorage.getItem("theme") || "light";
+        setTheme(savedTheme);
+
+        themeToggleButton.addEventListener("click", function () {
+            const currentTheme = document.documentElement.classList.contains("dark-theme") ? "dark" : "light";
+            setTheme(currentTheme === "dark" ? "light" : "dark");
+        });
+    }
 });

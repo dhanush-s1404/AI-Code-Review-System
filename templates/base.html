@@ -11,7 +11,7 @@
     {% if current_user.is_authenticated %}
     <nav class="navbar">
         <div class="nav-brand">
-            <i class="fas fa-code"></i>
+            <img src="https://img.icons8.com/ios-filled/50/ffffff/artificial-intelligence.png" alt="AI icon" class="nav-logo">
             <span>AI Code Review</span>
         </div>
         <div class="nav-links">
@@ -26,6 +26,9 @@
             </a>
         </div>
         <div class="nav-user">
+            <button id="theme-toggle" class="btn btn-secondary btn-sm" title="Toggle light / dark mode">
+                <i class="fas fa-moon"></i>
+            </button>
             <span><i class="fas fa-user"></i> {{ current_user.name }}</span>
             <a href="{{ url_for('logout') }}" class="btn-logout">
                 <i class="fas fa-sign-out-alt"></i> Logout

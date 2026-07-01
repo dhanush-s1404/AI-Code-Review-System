@@ -29,8 +29,9 @@ def _fix_with_anthropic(code: str, language: str, specific_issue: str) -> str:
         issue_text = f"Focus specifically on: {specific_issue}" if specific_issue else "Fix all detected issues."
 
         message = client.messages.create(
-            model="claude-sonnet-4-20250514",
+            model="claude-opus-4.8",
             max_tokens=4096,
+            temperature=0.2,
             messages=[{
                 "role": "user",
                 "content": (
@@ -41,7 +42,7 @@ def _fix_with_anthropic(code: str, language: str, specific_issue: str) -> str:
             }],
         )
 
-        fixed = message.content[0].text.strip()
+        fixed = _extract_anthropic_text(message).strip()
         fixed = re.sub(r"^```\w*\s*", "", fixed)
         fixed = re.sub(r"\s*```$", "", fixed)
         return fixed
@@ -83,3 +84,27 @@ def _fix_with_openai(code: str, language: str, specific_issue: str) -> str:
     except Exception as e:
         print(f"Autofix error (OpenAI): {e}")
         return code
+
+
+def _extract_anthropic_text(message_obj) -> str:
+    """Extract human-readable text from an Anthropic Message response."""
+    if not message_obj:
+        return ""
+
+    if hasattr(message_obj, "content"):
+        content = message_obj.content
+        if content:
+            first = content[0]
+            if hasattr(first, "text"):
+                return first.text
+            if isinstance(first, dict):
+                return first.get("text", "")
+
+    if isinstance(message_obj, dict):
+        content_list = message_obj.get("content", [])
+        if isinstance(content_list, list) and content_list:
+            first = content_list[0]
+            if isinstance(first, dict):
+                return first.get("text", "")
+
+    return str(message_obj)
